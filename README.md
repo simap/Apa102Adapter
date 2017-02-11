@@ -9,8 +9,5 @@ This uses less memory and can theoretically drive a very long chain of LEDs, alb
 
 The apa102 "global brightness" per-pixel value is exposed as the 4th element in the rgbv array. This is a lower speed 5-bit brightness PWM on top of the main RGB pwm. While it will make flickering slightly more noticable, it can allow for much dimmer colors than is possible otherwise.
 
+SPI data is sent while the next pixel is being generated for better refresh rates.
 
-TODO
-=========
-
-* On ESP8266, SPI library code blocks waiting for transfer to complete, but we could be calling out to generate the next pixel while the transfer is happening.
