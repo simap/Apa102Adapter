@@ -28,7 +28,7 @@ public:
     }
 
     ~Apa102Adapter() {
-        SPI.end();
+        end();
     }
 
     void begin(uint32_t spiFrequency = 2000000L) {
@@ -41,6 +41,10 @@ public:
         const uint32_t mask = ~((SPIMMOSI << SPILMOSI) | (SPIMMISO << SPILMISO));
         bits--;
         SPI1U1 = ((SPI1U1 & mask) | ((bits << SPILMOSI) | (bits << SPILMISO)));
+    }
+
+    void end() {
+        SPI.end();
     }
 
     void setSpiFrequency(uint32_t spiFrequency) {
