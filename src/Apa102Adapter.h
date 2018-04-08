@@ -83,7 +83,7 @@ public:
         }
 
         //end frame
-        uint8_t extraShifts = (uint8_t) (1 + numPixels >> 5);
+        uint8_t extraShifts = (uint8_t) (1 + (numPixels >> 5));
         do {
             write32(0xffffffff);
         } while (--extraShifts > 0);
