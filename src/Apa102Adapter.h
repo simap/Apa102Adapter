@@ -9,6 +9,11 @@
 #include <SPI.h>
 #include <functional>
 
+#ifdef ESP32
+#include "soc/spi_struct.h"
+constexpr spi_dev_t * spiDev = (volatile spi_dev_t *)(DR_REG_SPI3_BASE);
+#endif
+
 //borrowed from Adafruit
 // Color-order flag for LED pixels (optional extra parameter to constructor):
 // Bits 0,1 = R index (0-2), bits 2,3 = G index, bits 4,5 = B index
@@ -36,11 +41,23 @@ public:
         SPI.setFrequency(spiFrequency);
         SPI.setBitOrder(MSBFIRST);
         SPI.setDataMode(SPI_MODE0);
+
+#ifdef ESP8266
         //borrowed from SPI.cpp, set registers for a 32bit transfer buffer
         uint16_t bits = 32;
         const uint32_t mask = ~((SPIMMOSI << SPILMOSI) | (SPIMMISO << SPILMISO));
         bits--;
         SPI1U1 = ((SPI1U1 & mask) | ((bits << SPILMOSI) | (bits << SPILMISO)));
+#endif
+
+#ifdef ESP32
+        spiDev->user.usr_miso = 0; //disable input
+        spiDev->user.doutdin = 0; //half duplex
+
+        //config for 32 bit xfers
+        spiDev->mosi_dlen.usr_mosi_dbitlen = 31;
+        spiDev->miso_dlen.usr_miso_dbitlen = 31;
+#endif
     }
 
     void end() {
@@ -91,9 +108,25 @@ public:
 
 private:
     inline void write32(uint32_t v) {
+#ifdef ESP8266
         while(SPI1CMD & SPIBUSY) {}
         SPI1W0 = v;
         SPI1CMD |= SPIBUSY;
+#endif
+#ifdef ESP32
+
+        //as usual, default transfer blocks for sending, and has a lot of redundancies
+//        SPI.transfer32(v);
+
+        while(spiDev->cmd.usr);
+        spiDev->data_buf[0] = v;
+        spiDev->cmd.usr = 1;
+        //don't this since I turned off MISO and full duplex
+        //data = spi->dev->data_buf[0];
+
+
+#endif
+
     }
     uint8_t
             rOffset,                                // Index of red in 3-byte pixel
