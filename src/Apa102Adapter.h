@@ -121,10 +121,8 @@ private:
         while(spiDev->cmd.usr);
         spiDev->data_buf[0] = v;
         spiDev->cmd.usr = 1;
-        //don't this since I turned off MISO and full duplex
+        //don't do this since I turned off MISO and full duplex
         //data = spi->dev->data_buf[0];
-
-
 #endif
 
     }
