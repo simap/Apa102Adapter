@@ -1,5 +1,6 @@
 //
 // Created by Jon C. Thomason on 3/19/22.
+// Modified by Ben Hencke on 3/20/22.
 //
 
 #ifndef SEMI_ASYNC_SPI_HPP
@@ -9,16 +10,14 @@
 
 #ifdef ESP32
 #include "soc/spi_struct.h"
-
-
-constexpr spi_dev_t * spiDev = (spi_dev_t *)(&SPI3);
-
+//NOTE: it is also possible to get this via SPIClass::bus() and dereferencing the dev field
+constexpr spi_dev_t * spiDev = &SPI3;
 #endif
 
 
-class SemiAsyncSPIClass: public SPIClass {
+class SemiAsyncSPIClass: public SPSPIClassIClass {
 public:
-  SemiAsyncSPIClass() : SPIClass() {
+  SemiAsyncSPIClass() : SPIClass(VSPI) {
     presetFrameSize(32);
   };
 
@@ -90,7 +89,5 @@ public:
     spiDev->cmd.usr = 1;
   }
 #endif
-
-extern SemiAsyncSPIClass SPIAsync;
 
 #endif // SEMI_ASYNC_SPI_HPP
