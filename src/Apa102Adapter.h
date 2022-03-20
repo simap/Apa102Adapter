@@ -31,19 +31,19 @@ public:
     }
 
     void begin(uint32_t spiFrequency = 2000000L) {
-        SPI.begin();
-        SPI.setFrequency(spiFrequency);
-        SPI.setBitOrder(MSBFIRST);
-        SPI.setDataMode(SPI_MODE0);
-        SPI.presetFrameSize(32);
+        SPIAsync.begin();
+        SPIAsync.setFrequency(spiFrequency);
+        SPIAsync.setBitOrder(MSBFIRST);
+        SPIAsync.setDataMode(SPI_MODE0);
+        SPIAsync.presetFrameSize(32);
     }
 
     void end() {
-        SPI.end();
+        SPIAsync.end();
     }
 
     void setSpiFrequency(uint32_t spiFrequency) {
-        SPI.setFrequency(spiFrequency);
+        SPIAsync.setFrequency(spiFrequency);
     }
 
     void setColorOrder(uint8_t o) {
@@ -60,7 +60,7 @@ public:
         } buf, rgbv;
 
         //start frame
-        SPI.semiAsyncWrite32(0);
+        SPIAsync.semiAsyncWrite32(0);
 
         //pixels, sourced from callback
         for (curPixel = 0; curPixel < numPixels; curPixel++) {
@@ -74,17 +74,18 @@ public:
             buf.b[rOffset] = rgbv.b[0];
             buf.b[gOffset] = rgbv.b[1];
             buf.b[bOffset] = rgbv.b[2];
-            SPI.semiAsyncWrite32(buf.frame);
+            SPIAsync.semiAsyncWrite32(buf.frame);
         }
 
         //end frame
         uint8_t extraShifts = (uint8_t) (1 + (numPixels >> 5));
         do {
-            SPI.semiAsyncWrite32(0xffffffff);
+            SPIAsync.semiAsyncWrite32(0xffffffff);
         } while (--extraShifts > 0);
     }
 
 private:
+    SemiAsyncSPIClass SPIAsync;
     uint8_t
             rOffset,                                // Index of red in 3-byte pixel
             gOffset,                                // Index of green byte
