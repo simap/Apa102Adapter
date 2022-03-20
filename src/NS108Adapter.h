@@ -11,22 +11,21 @@
 #include <functional>
 
 
-// LED component order
-enum { rComponent, gComponent, bComponent };
-enum outputOrder {
-    NS108_RGB = ((rComponent << 0) | (gComponent << 2) | (bComponent << 4)),
-    NS108_RBG = ((rComponent << 0) | (bComponent << 2) | (gComponent << 4)),
-    NS108_GRB = ((gComponent << 0) | (rComponent << 2) | (bComponent << 4)),
-    NS108_GBR = ((gComponent << 0) | (bComponent << 2) | (rComponent << 4)),
-    NS108_BRG = ((bComponent << 0) | (rComponent << 2) | (gComponent << 4)),
-    NS108_BGR = ((bComponent << 0) | (gComponent << 2) | (rComponent << 4)),
-};
+//borrowed from Adafruit
+// Color-order flag for LED pixels (optional extra parameter to constructor):
+// Bits 0,1 = R index (0-2), bits 2,3 = G index, bits 4,5 = B index
+#define APA102_RGB (0 | (1 << 2) | (2 << 4))
+#define APA102_RBG (0 | (2 << 2) | (1 << 4))
+#define APA102_GRB (1 | (0 << 2) | (2 << 4))
+#define APA102_GBR (2 | (0 << 2) | (1 << 4))
+#define APA102_BRG (1 | (2 << 2) | (0 << 4))
+#define APA102_BGR (2 | (1 << 2) | (0 << 4))
 
 typedef std::function<void(uint16_t index, uint8_t rgbv[])> ApaPixelFunction;
 
 class NS108Adapter {
 public:
-    NS108Adapter(outputOrder order = NS108_RGB) {
+    NS108Adapter(uint8_t order = APA102_RGB) {
         setColorOrder(order);
     }
 
@@ -50,12 +49,10 @@ public:
         SPIAsync.setFrequency(spiFrequency);
     }
 
-    void setColorOrder(outputOrder order) {
-        //first, second, third output component offsets from within source pixel
-        //e.g. NS108_RBG -> { rComponent=0, bComponent=2, gComponent=1 }
-        srcComponentOffset[0] = ((order >> 0) & 3);
-        srcComponentOffset[1] = ((order >> 2) & 3);
-        srcComponentOffset[2] = ((order >> 4) & 3);
+    void setColorOrder(uint8_t o) {
+        rOffset = (uint8_t) (1+(o & 3)) * 2;
+        gOffset = (uint8_t) (1+((o >> 2) & 3)) * 2;
+        bOffset = (uint8_t) (1+((o >> 4) & 3)) * 2;
     }
 
     void show(uint16_t numPixels, ApaPixelFunction cb) {
@@ -99,9 +96,13 @@ public:
             *p++ = (gain << 5) | gain;
 
             //expand each 8-bit component to 16-bit by stuttering
-            *p++ = *p++ = srcPixel.b[srcComponentOffset[0]];
-            *p++ = *p++ = srcPixel.b[srcComponentOffset[1]];
-            *p++ = *p++ = srcPixel.b[srcComponentOffset[2]];
+
+            outPixel.b[rOffset] = srcPixel.s.R;
+            outPixel.b[rOffset+1] = srcPixel.s.R;
+            outPixel.b[gOffset] = srcPixel.s.G;
+            outPixel.b[gOffset+1] = srcPixel.s.G;
+            outPixel.b[bOffset] = srcPixel.s.B;
+            outPixel.b[bOffset+1] = srcPixel.s.B;
 
             SPIAsync.semiAsyncWrite64(outPixel.frame);
         }
@@ -113,7 +114,12 @@ public:
     }
 
 private:
-    uint8_t srcComponentOffset[3];   //see setColorOrder(outputOrder)
+    SemiAsyncSPIClass SPIAsync;
+    uint8_t
+            rOffset,                                // Index of red in 3-byte pixel
+            gOffset,                                // Index of green byte
+            bOffset;                                // Index of blue byte
+
 };
 
 
