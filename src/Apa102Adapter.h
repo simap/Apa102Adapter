@@ -11,7 +11,7 @@
 
 #ifdef ESP32
 #include "soc/spi_struct.h"
-constexpr spi_dev_t * spiDev = (volatile spi_dev_t *)(DR_REG_SPI3_BASE);
+constexpr spi_dev_t * spiDev = &SPI3;
 #endif
 
 //borrowed from Adafruit
