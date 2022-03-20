@@ -15,7 +15,7 @@ constexpr spi_dev_t * spiDev = &SPI3;
 #endif
 
 
-class SemiAsyncSPIClass: public SPSPIClassIClass {
+class SemiAsyncSPIClass: public SPIClass {
 public:
   SemiAsyncSPIClass() : SPIClass(VSPI) {
     presetFrameSize(32);
