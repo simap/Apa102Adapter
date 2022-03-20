@@ -5,7 +5,11 @@
 #ifndef NS108ADAPTER_HPP
 #define NS108ADAPTER_HPP
 
+#include <Arduino.h>
+
 #include "SemiAsyncSPI.h"
+#include <functional>
+
 
 // LED component order
 enum { rComponent, gComponent, bComponent };
@@ -31,19 +35,19 @@ public:
     }
 
     void begin(uint32_t spiFrequency = 16000000L) {
-        SPI.begin();
-        SPI.setFrequency(spiFrequency);
-        SPI.setBitOrder(MSBFIRST);
-        SPI.setDataMode(SPI_MODE0);
-        SPI.presetFrameSize(64);
+        SPIAsync.begin();
+        SPIAsync.setFrequency(spiFrequency);
+        SPIAsync.setBitOrder(MSBFIRST);
+        SPIAsync.setDataMode(SPI_MODE0);
+        SPIAsync.presetFrameSize(64);
     }
 
     void end() {
-        SPI.end();
+        SPIAsync.end();
     }
 
     void setSpiFrequency(uint32_t spiFrequency) {
-        SPI.setFrequency(spiFrequency);
+        SPIAsync.setFrequency(spiFrequency);
     }
 
     void setColorOrder(outputOrder order) {
@@ -79,7 +83,7 @@ public:
         } outPixel;
 
         //start frame (64 bits low)
-        SPI.semiAsyncWrite64(0);
+        SPIAsync.semiAsyncWrite64(0);
 
         //pixel sequence
         for (pixelIndex = 0; pixelIndex < numPixels; pixelIndex++) {
@@ -99,12 +103,12 @@ public:
             *p++ = *p++ = srcPixel.b[srcComponentOffset[1]];
             *p++ = *p++ = srcPixel.b[srcComponentOffset[2]];
 
-            SPI.semiAsyncWrite64(outPixel.frame);
+            SPIAsync.semiAsyncWrite64(outPixel.frame);
         }
 
         //end frame (at least one additional bit per LED, high)
         for (uint8_t drain = (numPixels >> 6) + 1; drain > 0; drain--) {
-            SPI.semiAsyncWrite64(-1);
+            SPIAsync.semiAsyncWrite64(-1);
         }
     }
 

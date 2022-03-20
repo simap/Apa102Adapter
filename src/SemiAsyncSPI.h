@@ -5,8 +5,15 @@
 #ifndef SEMI_ASYNC_SPI_HPP
 #define SEMI_ASYNC_SPI_HPP
 
-#define NO_GLOBAL_SPI
 #include <SPI.h>
+
+#ifdef ESP32
+#include "soc/spi_struct.h"
+
+
+constexpr spi_dev_t * spiDev = (spi_dev_t *)(&SPI3);
+
+#endif
 
 
 class SemiAsyncSPIClass: public SPIClass {
@@ -61,9 +68,6 @@ public:
   //synchronous implementation reference:
   //<https://github.com/espressif/arduino-esp32/blob/master/cores/esp32/esp32-hal-spi.c>
 
-  #include "soc/spi_struct.h"
-  constexpr spi_dev_t * spiDev = (volatile spi_dev_t *)(DR_REG_SPI3_BASE);
-
   inline void SemiAsyncSPIClass::presetFrameSize(uint8_t bitCount) {
     bitCount -= 1;
     spiDev->user.usr_miso = 0; //disable input
@@ -87,6 +91,6 @@ public:
   }
 #endif
 
-extern SemiAsyncSPIClass SPI;
+extern SemiAsyncSPIClass SPIAsync;
 
 #endif // SEMI_ASYNC_SPI_HPP
