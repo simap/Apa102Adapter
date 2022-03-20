@@ -79,7 +79,8 @@ public:
             uint8_t b[8];
         } outPixel;
 
-        //start frame (64 bits low)
+        //start frame (128 bits low)
+        SPIAsync.semiAsyncWrite64(0);
         SPIAsync.semiAsyncWrite64(0);
 
         //pixel sequence
@@ -96,7 +97,6 @@ public:
             *p++ = (gain << 5) | gain;
 
             //expand each 8-bit component to 16-bit by stuttering
-
             outPixel.b[rOffset] = srcPixel.s.R;
             outPixel.b[rOffset+1] = srcPixel.s.R;
             outPixel.b[gOffset] = srcPixel.s.G;
