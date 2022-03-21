@@ -92,17 +92,21 @@ public:
             gain = srcPixel.s.V & 0x1f;
 
             //start bit, then three 5-bit component gain values, MSB-first
-            uint8_t *p = outPixel.b;
-            *p++ = 0x80 | (gain << 2) | (gain >> 3);
-            *p++ = (gain << 5) | gain;
+            outPixel.b[0] = outPixel.b[1] = 0xff; //start bit, and full gain for r, g, b
 
-            //expand each 8-bit component to 16-bit by stuttering
-            outPixel.b[rOffset] = srcPixel.s.R;
-            outPixel.b[rOffset+1] = srcPixel.s.R;
-            outPixel.b[gOffset] = srcPixel.s.G;
-            outPixel.b[gOffset+1] = srcPixel.s.G;
-            outPixel.b[bOffset] = srcPixel.s.B;
-            outPixel.b[bOffset+1] = srcPixel.s.B;
+            //HACK: expand each 8-bit component and gain to 16-bit
+            uint32_t element;
+            element = srcPixel.s.R * gain * 256 / 31;
+            outPixel.b[rOffset] = element>>8;
+            outPixel.b[rOffset+1] = element;
+
+            element = srcPixel.s.G * gain * 256 / 31;
+            outPixel.b[gOffset] = element>>8;
+            outPixel.b[gOffset+1] = element;
+
+            element = srcPixel.s.B * gain * 256 / 31;
+            outPixel.b[bOffset] = element>>8;
+            outPixel.b[bOffset+1] = element;
 
             SPIAsync.semiAsyncWrite64(outPixel.frame);
         }
