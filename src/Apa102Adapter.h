@@ -14,22 +14,13 @@
 constexpr spi_dev_t * spiDev = &SPI3;
 #endif
 
-//borrowed from Adafruit
-// Color-order flag for LED pixels (optional extra parameter to constructor):
-// Bits 0,1 = R index (0-2), bits 2,3 = G index, bits 4,5 = B index
-#define APA102_RGB (0 | (1 << 2) | (2 << 4))
-#define APA102_RBG (0 | (2 << 2) | (1 << 4))
-#define APA102_GRB (1 | (0 << 2) | (2 << 4))
-#define APA102_GBR (2 | (0 << 2) | (1 << 4))
-#define APA102_BRG (1 | (2 << 2) | (0 << 4))
-#define APA102_BGR (2 | (1 << 2) | (0 << 4))
 
 typedef std::function<void(uint16_t index, uint8_t rgbv[])> ApaPixelFunction;
 
 class Apa102Adapter {
 public:
-    Apa102Adapter(uint8_t o = APA102_BGR) {
-        setColorOrder(o);
+    Apa102Adapter() {
+        setColorOrder(2, 1, 0);
     }
 
     ~Apa102Adapter() {
@@ -68,10 +59,10 @@ public:
         SPI.setFrequency(spiFrequency);
     }
 
-    void setColorOrder(uint8_t o) {
-        rOffset = (uint8_t) (1+(o & 3));
-        gOffset = (uint8_t) (1+((o >> 2) & 3));
-        bOffset = (uint8_t) (1+((o >> 4) & 3));
+    void setColorOrder(uint8_t ri, uint8_t gi, uint8_t bi) {
+        rOffset = ri + 1;
+        gOffset = gi + 1;
+        bOffset = bi + 1;
     }
 
     void show(uint16_t numPixels, ApaPixelFunction cb) {
